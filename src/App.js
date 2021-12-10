@@ -2,6 +2,7 @@ import { Component } from "react";
 import ContactForm from "./components/ContactForm/ContactForm.jsx";
 import Filter from "./components/Filter/Filter.jsx";
 import ContactList from "./components/ContactList/ContactList.jsx";
+import { nanoid } from "nanoid";
 
 class App extends Component {
   state = {
@@ -12,19 +13,55 @@ class App extends Component {
       { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
     ],
     filter: "",
-    name: "",
-    number: "",
+  };
+
+  addContact = ({ name, number }) => {
+    const isName = this.checkName(name);
+    if (isName) return alert(`${name} is already in contacts`);
+    const obj = {
+      id: nanoid(),
+      name,
+      number,
+    };
+    this.setState(prevState => {
+      return {
+        contacts: [...prevState.contacts, obj],
+      };
+    });
+  };
+
+  checkName = nameValue =>
+    this.state.contacts.some(({ name }) => name === nameValue);
+
+  handleChange = e => {
+    const { name, value } = e.target;
+    this.setState({ [name]: value });
+  };
+
+  filterContacts = () => {
+    return this.state.contacts.filter(contact =>
+      contact.name.toLowerCase().includes(this.state.filter.toLowerCase())
+    );
+  };
+
+  deleteContact = id => {
+    this.setState(prevState => ({
+      contacts: prevState.contacts.filter(contact => contact.id !== id),
+    }));
   };
 
   render() {
     return (
       <div>
         <h1>Phonebook</h1>
-        <ContactForm />
-
+        <ContactForm addContact={this.addContact} />
         <h2>Contacts</h2>
-        <Filter />
-        <ContactList />
+        <Filter filter={this.state.filter} value={this.handleChange} />
+        <ContactList
+          contacts={this.state.contacts}
+          filterContacts={this.filterContacts}
+          deleteContact={this.deleteContact}
+        />
       </div>
     );
   }
